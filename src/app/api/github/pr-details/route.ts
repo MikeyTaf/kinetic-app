@@ -16,7 +16,8 @@ export async function GET(request: Request) {
   const pull_number = Number(prNumberStr);
 
   const session = await getServerSession(authOptions);
-  const token = (session as any)?.accessToken;
+  // This is the corrected line
+  const token = session?.accessToken;
   if (!token) {
     return NextResponse.json({ error: "Unauthorized: No session token found" }, { status: 401 });
   }
@@ -24,28 +25,24 @@ export async function GET(request: Request) {
   const octokit = new Octokit({ auth: token });
   
   try {
-    // --- THIS IS THE UPGRADED FETCH ---
-    // We now fetch four things in parallel: details, files, reviews, AND comments.
     const [prDetailsResponse, filesResponse, reviewsResponse, commentsResponse] = await Promise.all([
       octokit.pulls.get({ owner, repo, pull_number }),
       octokit.pulls.listFiles({ owner, repo, pull_number }),
       octokit.pulls.listReviews({ owner, repo, pull_number }),
-      octokit.issues.listComments({ owner, repo, issue_number: pull_number }), // PRs are also issues, so we fetch their comments here.
+      octokit.issues.listComments({ owner, repo, issue_number: pull_number }),
     ]);
 
-    // Combine both formal reviews and general comments into one list for scoring
     const reviewBodies = reviewsResponse.data.map(review => ({ body: review.body || "" }));
     const commentBodies = commentsResponse.data.map(comment => ({ body: comment.body || "" }));
     const allDiscussion = [...reviewBodies, ...commentBodies];
 
-    // Build the final data object
     const data = {
       title: prDetailsResponse.data.title,
       additions: prDetailsResponse.data.additions,
       deletions: prDetailsResponse.data.deletions,
       filesChanged: prDetailsResponse.data.changed_files,
       mergedAt: prDetailsResponse.data.merged_at,
-      reviews: allDiscussion, // Use the new combined list
+      reviews: allDiscussion,
       patches: filesResponse.data.filter(f => !!f.patch).map(f => ({
         filename: f.filename,
         status: f.status,
