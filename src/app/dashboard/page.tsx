@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 
 type Repo = {
   full_name: string;
@@ -11,6 +12,14 @@ type PR = {
   title: string;
 };
 
+async function fetcher(url: string) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch from ${url}`);
+  }
+  return response.json();
+}
+
 export default function Dashboard() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [selectedRepo, setSelectedRepo] = useState<string>("");
@@ -18,41 +27,33 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState({ repos: true, prs: false });
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchRepos() {
-      setIsLoading(prev => ({ ...prev, repos: true }));
-      try {
-        const response = await fetch("/api/github/repos");
-        if (!response.ok) throw new Error("Failed to fetch repos.");
-        const data = await response.json();
-        setRepos(data);
-      } catch (e: any) { setError(e.message); }
-      finally { setIsLoading(prev => ({ ...prev, repos: false })); }
-    }
-    fetchRepos();
-  }, []);
+  useState(() => {
+    fetcher("/api/github/repos")
+      .then(data => setRepos(data))
+      .catch(e => setError(e.message))
+      .finally(() => setIsLoading(prev => ({ ...prev, repos: false })));
+  });
 
   async function handleSelectRepo(repoFullName: string) {
     setSelectedRepo(repoFullName);
     setPRs([]);
     setIsLoading(prev => ({ ...prev, prs: true }));
     setError(null);
-    try {
-      const response = await fetch(`/api/github/prs?repo=${encodeURIComponent(repoFullName)}`);
-      if (!response.ok) throw new Error("Failed to fetch pull requests.");
-      const data = await response.json();
-      setPRs(data);
-    } catch (e: any) { setError(e.message); }
-    finally { setIsLoading(prev => ({ ...prev, prs: false })); }
+    fetcher(`/api/github/prs?repo=${repoFullName}`)
+      .then(data => setPRs(data))
+      .catch(e => setError(e.message))
+      .finally(() => setIsLoading(prev => ({ ...prev, prs: false })));
   }
 
   return (
     <main className="max-w-7xl mx-auto p-4 md:p-8">
       <header className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
         <h1 className="text-4xl font-bold text-slate-100">Dashboard</h1>
-        <a href="/api/auth/signout" className="text-red-500 hover:underline">Sign Out</a>
+        <button onClick={() => signOut()} className="text-red-500 hover:underline">
+          Sign Out
+        </button>
       </header>
-
+      
       {error && <p className="text-red-400 mb-4 p-4 bg-red-900/50 border border-red-500 rounded-lg">Error: {error}</p>}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

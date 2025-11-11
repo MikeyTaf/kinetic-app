@@ -2,7 +2,7 @@ import { headers } from 'next/headers';
 import { getCraftScore, getCollabScore, classifyKind } from "@/lib/signals";
 import Replay from "./replay";
 
-// @ts-ignore
+
 function ScoreBar({ name, score }: { name: string, score: number }) {
   const barColor = score > 65 ? 'bg-green-500' : score > 40 ? 'bg-yellow-500' : 'bg-red-500';
   return (
@@ -18,7 +18,7 @@ function ScoreBar({ name, score }: { name: string, score: number }) {
   );
 }
 
-// @ts-ignore
+
 function DiffViewer({ patches }: { patches: { filename: string, status: string, patch: string }[] }) {
   const renderPatch = (patchText: string) => {
     return patchText.split('\n').map((line, i) => {
@@ -65,7 +65,7 @@ export default async function TilePage({ params }: { params: Promise<{ slug: str
       title: data.title || '',
       additions: data.additions || 0,
       deletions: data.deletions || 0,
-      reviews: data.reviews || [], // Ensure 'reviews' is an empty array if it's missing
+      reviews: data.reviews || [],
     };
     const craftScore = getCraftScore(prDataForScoring);
     const collabScore = getCollabScore(prDataForScoring);
