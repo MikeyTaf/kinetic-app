@@ -31,7 +31,6 @@ type TileClientProps = {
 export default function TileClient({ tileData, prDataForAI }: TileClientProps) {
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
 
-  // Merge AI analysis with tile data for export
   const exportData = {
     ...tileData,
     summary: aiAnalysis?.summary,
@@ -39,20 +38,9 @@ export default function TileClient({ tileData, prDataForAI }: TileClientProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* AI Analysis Section */}
+    <div className="grid md:grid-cols-2 gap-6">
       <AIAnalysis prData={prDataForAI} onAnalysisComplete={setAiAnalysis} />
-
-      {/* Export Options */}
-      <div className="bg-slate-800 p-6 rounded-xl border border-slate-700">
-        <h3 className="font-bold text-lg text-slate-200 mb-4">📤 Share Your Work</h3>
-        <ExportTile tileData={exportData} />
-        <p className="text-slate-500 text-sm mt-3">
-          {aiAnalysis 
-            ? "✓ AI analysis included in export" 
-            : "Run AI analysis first to include summary & impact in your export"}
-        </p>
-      </div>
+      <ExportTile tileData={exportData} />
     </div>
   );
 }

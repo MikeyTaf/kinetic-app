@@ -1,9 +1,3 @@
-import Anthropic from "@anthropic-ai/sdk";
-
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "",
-});
-
 export type PRAnalysis = {
   summary: string;
   impactStatement: string;
@@ -18,10 +12,9 @@ export async function analyzePR(data: {
   additions: number;
   deletions: number;
 }): Promise<PRAnalysis> {
-  // Truncate patches to avoid token limits (keep first 4000 chars of each)
   const truncatedPatches = data.patches.slice(0, 5).map((p) => ({
     filename: p.filename,
-    patch: p.patch.slice(0, 4000),
+    patch: p.patch.slice(0, 3000),
   }));
 
   const prompt = `Analyze this GitHub Pull Request and provide insights for a developer portfolio.
@@ -33,7 +26,7 @@ Lines Deleted: ${data.deletions}
 Code Changes:
 ${truncatedPatches.map((p) => `--- ${p.filename} ---\n${p.patch}`).join("\n\n")}
 
-Respond in JSON format only (no markdown, no code blocks):
+Respond in JSON format only (no markdown, no code blocks, no explanation):
 {
   "summary": "2-3 sentence plain English explanation of what this PR does",
   "impactStatement": "1 sentence describing the business/technical impact, starting with a verb (e.g., 'Improved...', 'Added...', 'Fixed...')",
@@ -42,17 +35,36 @@ Respond in JSON format only (no markdown, no code blocks):
   "category": "one of: feature, bugfix, refactor, testing, devops, documentation"
 }`;
 
+  const apiKey = process.env.GROQ_API_KEY;
+
+  if (!apiKey) {
+    console.log("No GROQ_API_KEY found, using fallback analysis");
+    return generateFallback(data);
+  }
+
   try {
-    const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 500,
-      messages: [{ role: "user", content: prompt }],
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.3,
+        max_tokens: 500,
+      }),
     });
 
-    const text =
-      response.content[0].type === "text" ? response.content[0].text : "";
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Groq API error: ${response.status} ${err}`);
+    }
 
-    // Parse JSON from response
+    const result = await response.json();
+    const text = result.choices?.[0]?.message?.content || "";
+
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       return JSON.parse(jsonMatch[0]) as PRAnalysis;
@@ -61,15 +73,44 @@ Respond in JSON format only (no markdown, no code blocks):
     throw new Error("No JSON found in response");
   } catch (error) {
     console.error("AI analysis failed:", error);
-    // Return fallback analysis
-    return {
-      summary: `This PR "${data.title}" modifies ${data.patches.length} file(s) with ${data.additions} additions and ${data.deletions} deletions.`,
-      impactStatement: `Updated codebase with ${data.additions} lines of new code.`,
-      skills: detectSkillsFromFiles(data.patches.map((p) => p.filename)),
-      complexity: data.additions > 200 ? "high" : data.additions > 50 ? "medium" : "low",
-      category: guessCategory(data.title),
-    };
+    return generateFallback(data);
   }
+}
+
+function generateFallback(data: {
+  title: string;
+  patches: { filename: string; patch: string }[];
+  additions: number;
+  deletions: number;
+}): PRAnalysis {
+  const skills = detectSkillsFromFiles(data.patches.map((p) => p.filename));
+  const category = guessCategory(data.title);
+  const complexity = data.additions > 200 ? "high" : data.additions > 50 ? "medium" : "low";
+
+  const hasTests = data.patches.some((p) => p.filename.toLowerCase().includes("test"));
+  const hasConfig = data.patches.some((p) => p.filename.includes(".yml") || p.filename.includes(".json"));
+
+  let summary = `This PR "${data.title}" modifies ${data.patches.length} file(s)`;
+  if (hasTests) summary += " including test coverage";
+  if (hasConfig) summary += " with configuration updates";
+  summary += ` (+${data.additions}/-${data.deletions} lines).`;
+
+  const impactPhrases: Record<string, string> = {
+    feature: `Added new functionality with ${data.additions} lines of implementation code.`,
+    bugfix: `Fixed issues improving code reliability and stability.`,
+    refactor: `Improved code quality ${data.deletions > data.additions ? "by removing " + (data.deletions - data.additions) + " lines of technical debt" : "through restructuring"}.`,
+    testing: `Enhanced test coverage to ensure code reliability.`,
+    devops: `Improved deployment and infrastructure configuration.`,
+    documentation: `Enhanced project documentation for better maintainability.`,
+  };
+
+  return {
+    summary,
+    impactStatement: impactPhrases[category] || `Updated codebase with ${data.additions} lines of new code.`,
+    skills: skills.length > 0 ? skills : ["Software Development"],
+    complexity,
+    category,
+  };
 }
 
 function detectSkillsFromFiles(filenames: string[]): string[] {

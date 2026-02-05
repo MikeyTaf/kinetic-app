@@ -1,3 +1,5 @@
+// src/lib/signals.ts
+
 // Define the shape of the data our functions will work with
 export type PRDetailsForScoring = {
   title: string;
