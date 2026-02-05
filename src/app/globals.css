@@ -2,21 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --bg-primary: #09090b;
-  --bg-secondary: #18181b;
-  --bg-card: #1c1c22;
-  --border: #27272a;
-  --border-hover: #3f3f46;
-  --text-primary: #fafafa;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --accent: #22d3ee;
-  --accent-purple: #a78bfa;
-  --success: #4ade80;
-  --error: #f87171;
-}
-
 * {
   margin: 0;
   padding: 0;
@@ -25,14 +10,10 @@
 
 body {
   font-family: var(--font-outfit), system-ui, -apple-system, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
+  background: #0f0f0f;
+  color: #e5e5e5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-space-grotesk), system-ui, sans-serif;
 }
 
 code, pre, .mono {
@@ -40,47 +21,38 @@ code, pre, .mono {
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #1a1a1a;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
+  background: #333;
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--border-hover);
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-in {
-  animation: fadeIn 0.3s ease-out forwards;
+  background: #444;
 }
 
 .tier-platinum {
-  background: linear-gradient(135deg, #c4b5fd, #818cf8);
-  color: #1e1b4b;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  color: white;
 }
 
 .tier-gold {
-  background: linear-gradient(135deg, #fde047, #f59e0b);
-  color: #451a03;
+  background: linear-gradient(135deg, #fbbf24, #d97706);
+  color: #1a1a1a;
 }
 
 .tier-silver {
-  background: linear-gradient(135deg, #e4e4e7, #a1a1aa);
-  color: #18181b;
+  background: linear-gradient(135deg, #d1d5db, #9ca3af);
+  color: #1a1a1a;
 }
 
 .tier-bronze {
-  background: linear-gradient(135deg, #fdba74, #ea580c);
-  color: #431407;
+  background: linear-gradient(135deg, #f97316, #c2410c);
+  color: white;
 }
