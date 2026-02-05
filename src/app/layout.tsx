@@ -1,6 +1,5 @@
 import "./globals.css";
 import { Inter } from "next/font/google";
-import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,9 +15,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <Script src="https://cdn.tailwindcss.com" />
-      </head>
       <body className={`${inter.className} bg-slate-900 text-slate-300`}>
         {children}
       </body>

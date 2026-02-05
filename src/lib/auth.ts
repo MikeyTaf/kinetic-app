@@ -1,15 +1,5 @@
-// src/lib/auth.ts
-import { NextAuthOptions, DefaultSession, Account } from "next-auth";
-import { JWT } from "next-auth/jwt";
+import { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
-
-interface ExtendedJWT extends JWT {
-  accessToken?: string;
-}
-
-interface ExtendedSession extends DefaultSession {
-  accessToken?: string;
-}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -20,13 +10,13 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }: { token: ExtendedJWT; account: Account | null }) {
+    async jwt({ token, account }) {
       if (account) {
         token.accessToken = account.access_token;
       }
       return token;
     },
-    async session({ session, token }: { session: ExtendedSession; token: ExtendedJWT }) {
+    async session({ session, token }) {
       session.accessToken = token.accessToken;
       return session;
     },

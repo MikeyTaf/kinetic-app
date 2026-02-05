@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { signOut } from "next-auth/react";
 
@@ -27,22 +27,26 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState({ repos: true, prs: false });
   const [error, setError] = useState<string | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     fetcher("/api/github/repos")
       .then(data => setRepos(data))
       .catch(e => setError(e.message))
       .finally(() => setIsLoading(prev => ({ ...prev, repos: false })));
-  });
+  }, []);
 
   async function handleSelectRepo(repoFullName: string) {
     setSelectedRepo(repoFullName);
     setPRs([]);
     setIsLoading(prev => ({ ...prev, prs: true }));
     setError(null);
-    fetcher(`/api/github/prs?repo=${repoFullName}`)
-      .then(data => setPRs(data))
-      .catch(e => setError(e.message))
-      .finally(() => setIsLoading(prev => ({ ...prev, prs: false })));
+    try {
+      const data = await fetcher(`/api/github/prs?repo=${repoFullName}`);
+      setPRs(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load PRs");
+    } finally {
+      setIsLoading(prev => ({ ...prev, prs: false }));
+    }
   }
 
   return (
