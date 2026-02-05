@@ -8,73 +8,52 @@ import {
   detectSkills,
   getProofStrength,
 } from "@/lib/signals";
-import Replay from "./replay";
 import TileClient from "./TileClient";
 
-function ScoreRing({ score, label, color }: { score: number; label: string; color: string }) {
-  const circumference = 2 * Math.PI * 36;
-  const offset = circumference - (score / 100) * circumference;
-  
+function ScoreCard({ score, label, color }: { score: number; label: string; color: string }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className="relative w-24 h-24">
-        <svg className="w-24 h-24 -rotate-90">
-          <circle cx="48" cy="48" r="36" stroke="#2a2a3a" strokeWidth="6" fill="none" />
-          <circle
-            cx="48" cy="48" r="36" stroke={color} strokeWidth="6" fill="none"
-            strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset}
-            className="transition-all duration-1000 ease-out"
-            style={{ filter: `drop-shadow(0 0 8px ${color}50)` }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-['Space_Grotesk'] text-2xl font-bold text-[#f0f0f5]">{score}</span>
-        </div>
-      </div>
-      <span className="mt-2 text-xs font-['JetBrains_Mono'] text-[#55556a] uppercase tracking-wider">{label}</span>
+    <div className="text-center">
+      <div className={`text-3xl font-semibold ${color}`}>{score}</div>
+      <div className="text-xs text-zinc-500 uppercase tracking-wide mt-1">{label}</div>
     </div>
   );
 }
 
 function TierBadge({ tier }: { tier: string }) {
-  const tierConfig: Record<string, string> = {
-    platinum: "tier-platinum",
-    gold: "tier-gold", 
-    silver: "tier-silver",
-    bronze: "tier-bronze",
+  const styles: Record<string, string> = {
+    platinum: "bg-violet-500/20 text-violet-300 border-violet-500/30",
+    gold: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    silver: "bg-zinc-500/20 text-zinc-300 border-zinc-500/30",
+    bronze: "bg-orange-500/20 text-orange-300 border-orange-500/30",
   };
   return (
-    <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider ${tierConfig[tier] || tierConfig.silver}`}>
+    <span className={`px-2.5 py-1 rounded-md text-xs font-medium border ${styles[tier] || styles.silver}`}>
       {tier}
     </span>
   );
 }
 
 function DiffViewer({ patches }: { patches: { filename: string; status: string; patch: string }[] }) {
-  const renderPatch = (patchText: string) => {
-    return patchText.split("\n").map((line, i) => {
-      let colorClass = "text-[#55556a]";
-      if (line.startsWith("+")) colorClass = "text-[#00ff88]";
-      if (line.startsWith("-")) colorClass = "text-[#ff4466]";
-      if (line.startsWith("@@")) colorClass = "text-[#00f0ff]";
-      return <div key={i} className={`${colorClass} hover:bg-white/5`}>{line}</div>;
-    });
-  };
-
   return (
     <div className="space-y-4">
       {patches.map((p, i) => (
-        <div key={i} id={`diff-block-${i}`} className="rounded-xl overflow-hidden bg-[#0d0d12] border border-[#2a2a3a]">
-          <div className="px-4 py-3 bg-[#151520] border-b border-[#2a2a3a] flex items-center gap-3">
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-              <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
-              <div className="w-3 h-3 rounded-full bg-[#28ca41]" />
+        <div key={i} className="rounded-lg overflow-hidden bg-zinc-900 border border-zinc-800">
+          <div className="px-4 py-2 bg-zinc-800/50 border-b border-zinc-800 flex items-center gap-2">
+            <div className="flex gap-1">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
             </div>
-            <span className="font-['JetBrains_Mono'] text-sm text-[#8888a0]">{p.filename}</span>
+            <span className="text-xs text-zinc-400 font-mono ml-2">{p.filename}</span>
           </div>
-          <pre className="p-4 font-['JetBrains_Mono'] text-xs leading-relaxed overflow-x-auto">
-            {renderPatch(p.patch)}
+          <pre className="p-4 text-xs font-mono overflow-x-auto leading-relaxed">
+            {p.patch.split("\n").map((line, j) => {
+              let color = "text-zinc-500";
+              if (line.startsWith("+")) color = "text-emerald-400";
+              if (line.startsWith("-")) color = "text-red-400";
+              if (line.startsWith("@@")) color = "text-cyan-400";
+              return <div key={j} className={color}>{line}</div>;
+            })}
           </pre>
         </div>
       ))}
@@ -136,69 +115,72 @@ export default async function TilePage({ params }: { params: Promise<{ slug: str
     };
 
     return (
-      <main className="min-h-screen">
-        <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0a0a0f]/80 border-b border-[#2a2a3a]">
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-6">
+      <div className="min-h-screen bg-zinc-950">
+        {/* Header */}
+        <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-50">
+          <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-4">
               <Link href="/" className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00f0ff] to-[#a855f7] flex items-center justify-center">
-                  <span className="text-black font-bold text-sm">K</span>
+                <div className="w-7 h-7 rounded-md bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center">
+                  <span className="text-zinc-950 font-bold text-sm">K</span>
                 </div>
-                <span className="font-['Space_Grotesk'] font-bold text-xl tracking-tight hidden sm:block">kinetic</span>
+                <span className="font-semibold">Kinetic</span>
               </Link>
-              <div className="h-6 w-px bg-[#2a2a3a]" />
-              <span className="text-[#8888a0] text-sm font-['JetBrains_Mono']">proof tile</span>
+              <span className="text-zinc-600">/</span>
+              <span className="text-zinc-400 text-sm">Proof Tile</span>
             </div>
-            <Link href="/dashboard" className="text-sm text-[#00f0ff] hover:underline font-medium">
+            <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-white transition-colors">
               Back to Dashboard
             </Link>
           </div>
         </header>
 
-        <div className="max-w-6xl mx-auto px-6 py-8">
-          <div className="mb-8 animate-fade-in">
-            <div className="flex flex-wrap items-center gap-3 mb-4">
+        <main className="max-w-5xl mx-auto px-6 py-8">
+          {/* Title section */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
               <TierBadge tier={tier} />
-              <span className="px-3 py-1 rounded-full bg-[#151520] border border-[#2a2a3a] text-xs font-['JetBrains_Mono'] text-[#8888a0] uppercase">
+              <span className="px-2 py-1 rounded-md bg-zinc-800 text-xs text-zinc-400 uppercase">
                 {kind}
               </span>
             </div>
-            <h1 className="font-['Space_Grotesk'] text-3xl md:text-4xl font-bold text-[#f0f0f5] leading-tight">
-              {data.title}
-            </h1>
-            <p className="mt-3 font-['JetBrains_Mono'] text-sm text-[#55556a]">
+            <h1 className="text-2xl font-semibold mb-2">{data.title}</h1>
+            <p className="text-sm text-zinc-500 font-mono">
               {repoFullName} #{prNumber}
-              {data.mergedAt && ` // merged ${new Date(data.mergedAt).toLocaleDateString()}`}
+              {data.mergedAt && ` · merged ${new Date(data.mergedAt).toLocaleDateString()}`}
             </p>
           </div>
 
-          <div className="mb-8 animate-fade-in animate-delay-1">
+          {/* AI Analysis + Export */}
+          <div className="mb-8">
             <TileClient tileData={tileData} prDataForAI={prDataForAI} />
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="md:col-span-2 rounded-2xl bg-[#151520] border border-[#2a2a3a] p-6 animate-fade-in animate-delay-2">
-              <h2 className="font-['Space_Grotesk'] text-xl font-semibold mb-6">Metrics</h2>
-              <div className="grid grid-cols-3 gap-6 mb-6">
+          {/* Stats grid */}
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {/* Metrics */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+              <h2 className="font-medium mb-4">Metrics</h2>
+              <div className="grid grid-cols-3 gap-4 mb-6">
                 <div className="text-center">
-                  <div className="font-['Space_Grotesk'] text-3xl font-bold text-[#00ff88]">+{data.additions}</div>
-                  <div className="text-xs font-['JetBrains_Mono'] text-[#55556a] mt-1">ADDED</div>
+                  <div className="text-2xl font-semibold text-emerald-400">+{data.additions}</div>
+                  <div className="text-xs text-zinc-500 uppercase">Added</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-['Space_Grotesk'] text-3xl font-bold text-[#ff4466]">-{data.deletions}</div>
-                  <div className="text-xs font-['JetBrains_Mono'] text-[#55556a] mt-1">REMOVED</div>
+                  <div className="text-2xl font-semibold text-red-400">-{data.deletions}</div>
+                  <div className="text-xs text-zinc-500 uppercase">Removed</div>
                 </div>
                 <div className="text-center">
-                  <div className="font-['Space_Grotesk'] text-3xl font-bold text-[#f0f0f5]">{data.filesChanged}</div>
-                  <div className="text-xs font-['JetBrains_Mono'] text-[#55556a] mt-1">FILES</div>
+                  <div className="text-2xl font-semibold">{data.filesChanged}</div>
+                  <div className="text-xs text-zinc-500 uppercase">Files</div>
                 </div>
               </div>
               {skills.length > 0 && (
                 <div>
-                  <h3 className="text-xs font-['JetBrains_Mono'] text-[#55556a] uppercase mb-3">Skills Detected</h3>
+                  <h3 className="text-xs text-zinc-500 uppercase mb-2">Skills</h3>
                   <div className="flex flex-wrap gap-2">
                     {skills.map((skill, i) => (
-                      <span key={i} className="px-3 py-1.5 rounded-lg bg-[#1a1a25] border border-[#2a2a3a] text-sm text-[#f0f0f5]">
+                      <span key={i} className="px-2 py-1 rounded-md bg-zinc-800 text-xs text-zinc-300">
                         {skill}
                       </span>
                     ))}
@@ -207,51 +189,53 @@ export default async function TilePage({ params }: { params: Promise<{ slug: str
               )}
             </div>
 
-            <div className="rounded-2xl bg-[#151520] border border-[#2a2a3a] p-6 animate-fade-in animate-delay-3">
-              <h2 className="font-['Space_Grotesk'] text-xl font-semibold mb-6 text-center">Signals</h2>
-              <div className="flex flex-col items-center gap-6">
-                <ScoreRing score={craftScore} label="Craft" color="#00ff88" />
-                <ScoreRing score={collabScore} label="Collab" color="#00f0ff" />
-                <ScoreRing score={velocityScore} label="Velocity" color="#a855f7" />
+            {/* Scores */}
+            <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
+              <h2 className="font-medium mb-4">Scores</h2>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <ScoreCard score={craftScore} label="Craft" color="text-emerald-400" />
+                <ScoreCard score={collabScore} label="Collab" color="text-cyan-400" />
+                <ScoreCard score={velocityScore} label="Velocity" color="text-violet-400" />
               </div>
-              <div className="mt-6 pt-6 border-t border-[#2a2a3a] text-center">
-                <div className="font-['Space_Grotesk'] text-4xl font-bold bg-gradient-to-r from-[#00f0ff] to-[#a855f7] bg-clip-text text-transparent">
+              <div className="pt-4 border-t border-zinc-800 text-center">
+                <div className="text-4xl font-semibold bg-gradient-to-r from-cyan-400 to-violet-400 bg-clip-text text-transparent">
                   {overallScore}
                 </div>
-                <div className="text-xs font-['JetBrains_Mono'] text-[#55556a] mt-1">OVERALL</div>
+                <div className="text-xs text-zinc-500 uppercase mt-1">Overall</div>
               </div>
             </div>
           </div>
 
-          <div className="animate-fade-in animate-delay-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-['Space_Grotesk'] text-xl font-semibold">Code Changes</h2>
-              <Replay blockCount={data.patches?.length || 0} />
-            </div>
+          {/* Code changes */}
+          <div>
+            <h2 className="font-medium mb-4">Code Changes</h2>
             {data.patches && data.patches.length > 0 ? (
               <DiffViewer patches={data.patches} />
             ) : (
-              <div className="p-8 text-center rounded-2xl bg-[#151520] border border-[#2a2a3a]">
-                <p className="text-[#55556a]">No code changes to display</p>
+              <div className="p-8 text-center bg-zinc-900 border border-zinc-800 rounded-xl">
+                <p className="text-zinc-500 text-sm">No code changes to display</p>
               </div>
             )}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     );
   } catch (error) {
     console.error("Tile page error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
     return (
-      <main className="min-h-screen flex items-center justify-center p-8">
-        <div className="max-w-md w-full rounded-2xl bg-[#151520] border border-[#ff4466]/30 p-8 text-center">
-          <h1 className="font-['Space_Grotesk'] text-xl font-bold text-[#ff4466] mb-2">Error Loading Tile</h1>
-          <p className="text-[#8888a0] mb-6">{message}</p>
-          <Link href="/dashboard" className="inline-block px-6 py-3 rounded-xl bg-[#1a1a25] border border-[#2a2a3a] text-[#00f0ff] font-medium hover:border-[#00f0ff]/30 transition-colors">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center p-8">
+        <div className="max-w-md w-full bg-zinc-900 border border-zinc-800 rounded-xl p-6 text-center">
+          <h1 className="font-semibold text-red-400 mb-2">Error Loading Tile</h1>
+          <p className="text-zinc-400 text-sm mb-4">{message}</p>
+          <Link
+            href="/dashboard"
+            className="inline-block px-4 py-2 rounded-lg bg-zinc-800 text-sm text-zinc-300 hover:bg-zinc-700 transition-colors"
+          >
             Back to Dashboard
           </Link>
         </div>
-      </main>
+      </div>
     );
   }
 }

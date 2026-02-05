@@ -1,40 +1,32 @@
 import type { Metadata } from "next";
-import { Outfit, Space_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import Providers from "@/components/Providers";
 
-// Configure fonts with variable names
-const outfit = Outfit({ 
+const inter = Inter({ 
   subsets: ["latin"],
   variable: '--font-outfit',
-  display: 'swap',
-});
-
-const spaceGrotesk = Space_Grotesk({ 
-  subsets: ["latin"],
-  variable: '--font-space-grotesk',
-  display: 'swap',
 });
 
 const jetbrainsMono = JetBrains_Mono({ 
   subsets: ["latin"],
   variable: '--font-jetbrains-mono',
-  display: 'swap',
 });
 
 export const metadata: Metadata = {
-  title: "Kinetic - AI-Powered Developer Portfolio",
-  description: "Transform your GitHub contributions into verified proof tiles that showcase your real impact.",
+  title: "Kinetic - Developer Portfolio",
+  description: "Transform your GitHub contributions into verified proof tiles.",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body className={`${outfit.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} antialiased`}>
-        {children}
+    <html lang="en" className="dark" suppressHydrationWarning>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-zinc-950 text-zinc-100`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
