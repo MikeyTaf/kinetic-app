@@ -43,165 +43,148 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="min-h-screen">
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#0a0a0f]/80 border-b border-[#2a2a3a]">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-6">
+    <div className="min-h-screen bg-zinc-950">
+      {/* Header */}
+      <header className="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00f0ff] to-[#a855f7] flex items-center justify-center">
-                <span className="text-black font-bold text-sm">K</span>
+              <div className="w-7 h-7 rounded-md bg-gradient-to-br from-cyan-400 to-violet-500 flex items-center justify-center">
+                <span className="text-zinc-950 font-bold text-sm">K</span>
               </div>
-              <span className="font-['Space_Grotesk'] font-bold text-xl tracking-tight hidden sm:block">kinetic</span>
+              <span className="font-semibold">Kinetic</span>
             </Link>
-            <div className="h-6 w-px bg-[#2a2a3a]" />
-            <span className="text-[#8888a0] text-sm font-['JetBrains_Mono']">dashboard</span>
+            <span className="text-zinc-600">/</span>
+            <span className="text-zinc-400 text-sm">Dashboard</span>
           </div>
           <div className="flex items-center gap-4">
-            <Link href="/portfolio" className="text-sm text-[#8888a0] hover:text-[#00f0ff] transition-colors font-medium">
+            <Link href="/portfolio" className="text-sm text-zinc-400 hover:text-white transition-colors">
               Portfolio
             </Link>
-            <button onClick={() => signOut()} className="text-sm text-[#ff4466] hover:text-[#ff6b35] transition-colors font-medium">
-              Sign Out
+            <button 
+              onClick={() => signOut()} 
+              className="text-sm text-zinc-400 hover:text-white transition-colors"
+            >
+              Sign out
             </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
-        <div className="mb-8 animate-fade-in">
-          <h1 className="font-['Space_Grotesk'] text-3xl md:text-4xl font-bold">Select a PR to analyze</h1>
-          <p className="mt-2 text-[#8888a0]">Choose a repository, then pick a pull request to generate your proof tile</p>
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        {/* Page header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-semibold mb-1">Select a PR to analyze</h1>
+          <p className="text-zinc-400">Choose a repository, then pick a pull request to generate your proof tile.</p>
         </div>
 
+        {/* Error */}
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-[#ff4466]/10 border border-[#ff4466]/30 text-[#ff4466] animate-fade-in">
-            <span className="font-['JetBrains_Mono'] text-sm">{error}</span>
+          <div className="mb-6 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+            {error}
           </div>
         )}
 
-        <div className="grid lg:grid-cols-5 gap-6">
-          <div className="lg:col-span-2 animate-fade-in animate-delay-1">
-            <div className="rounded-2xl bg-[#151520] border border-[#2a2a3a] overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#2a2a3a] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#00f0ff]/10 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-[#00f0ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="font-['Space_Grotesk'] font-semibold">Repositories</h2>
-                    <p className="text-xs text-[#55556a] font-['JetBrains_Mono']">{repos.length} found</p>
-                  </div>
+        {/* Main content */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Repos panel */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+              <h2 className="font-medium">Repositories</h2>
+              <span className="text-xs text-zinc-500 font-mono">{repos.length} found</span>
+            </div>
+            <div className="max-h-[500px] overflow-y-auto">
+              {isLoading.repos ? (
+                <div className="p-8 text-center">
+                  <div className="w-5 h-5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-zinc-500">Loading repositories...</p>
                 </div>
-              </div>
-              <div className="max-h-[60vh] overflow-y-auto">
-                {isLoading.repos ? (
-                  <div className="p-8 text-center">
-                    <div className="inline-block w-6 h-6 border-2 border-[#00f0ff] border-t-transparent rounded-full animate-spin" />
-                    <p className="mt-3 text-sm text-[#55556a]">Loading repos...</p>
-                  </div>
-                ) : (
-                  <div className="p-2">
-                    {repos.map((repo) => (
-                      <button
-                        key={repo.full_name}
-                        onClick={() => handleSelectRepo(repo.full_name)}
-                        className={`w-full text-left p-3 rounded-xl transition-all duration-200 group ${
-                          selectedRepo === repo.full_name
-                            ? "bg-gradient-to-r from-[#00f0ff]/20 to-[#a855f7]/10 border border-[#00f0ff]/30"
-                            : "hover:bg-[#1a1a25] border border-transparent"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className={`text-sm font-medium truncate ${selectedRepo === repo.full_name ? "text-[#00f0ff]" : "text-[#f0f0f5] group-hover:text-[#00f0ff]"}`}>
-                            {repo.full_name}
-                          </span>
-                          <svg className={`w-4 h-4 transition-all ${selectedRepo === repo.full_name ? "text-[#00f0ff] translate-x-0 opacity-100" : "text-[#55556a] -translate-x-2 opacity-0 group-hover:translate-x-0 group-hover:opacity-100"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                          </svg>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+              ) : repos.length === 0 ? (
+                <div className="p-8 text-center text-zinc-500 text-sm">
+                  No repositories found
+                </div>
+              ) : (
+                <div className="p-2">
+                  {repos.map((repo) => (
+                    <button
+                      key={repo.full_name}
+                      onClick={() => handleSelectRepo(repo.full_name)}
+                      className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                        selectedRepo === repo.full_name
+                          ? "bg-cyan-500/10 text-cyan-400"
+                          : "text-zinc-300 hover:bg-zinc-800"
+                      }`}
+                    >
+                      {repo.full_name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="lg:col-span-3 animate-fade-in animate-delay-2">
-            <div className="rounded-2xl bg-[#151520] border border-[#2a2a3a] overflow-hidden">
-              <div className="px-5 py-4 border-b border-[#2a2a3a] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#a855f7]/10 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-[#a855f7]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+          {/* PRs panel */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+            <div className="px-4 py-3 border-b border-zinc-800 flex items-center justify-between">
+              <h2 className="font-medium">Pull Requests</h2>
+              <span className="text-xs text-zinc-500 font-mono">
+                {selectedRepo ? `${prs.length} closed` : "select repo"}
+              </span>
+            </div>
+            <div className="max-h-[500px] overflow-y-auto">
+              {!selectedRepo ? (
+                <div className="p-8 text-center">
+                  <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-6 h-6 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
                     </svg>
                   </div>
-                  <div>
-                    <h2 className="font-['Space_Grotesk'] font-semibold">Pull Requests</h2>
-                    <p className="text-xs text-[#55556a] font-['JetBrains_Mono']">{selectedRepo ? `${prs.length} closed PRs` : "select a repo"}</p>
-                  </div>
+                  <p className="text-sm text-zinc-500">Select a repository to view PRs</p>
                 </div>
-              </div>
-              <div className="max-h-[60vh] overflow-y-auto">
-                {!selectedRepo ? (
-                  <div className="p-12 text-center">
-                    <div className="w-16 h-16 mx-auto rounded-2xl bg-[#1a1a25] flex items-center justify-center mb-4">
-                      <svg className="w-8 h-8 text-[#55556a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                      </svg>
-                    </div>
-                    <p className="text-[#55556a]">Select a repository to view PRs</p>
-                  </div>
-                ) : isLoading.prs ? (
-                  <div className="p-12 text-center">
-                    <div className="inline-block w-6 h-6 border-2 border-[#a855f7] border-t-transparent rounded-full animate-spin" />
-                    <p className="mt-3 text-sm text-[#55556a]">Loading pull requests...</p>
-                  </div>
-                ) : prs.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <p className="text-[#55556a]">No closed PRs found</p>
-                  </div>
-                ) : (
-                  <div className="p-3 space-y-2">
-                    {prs.map((pr) => (
-                      <div key={pr.number} className="group p-4 rounded-xl bg-[#1a1a25]/50 border border-transparent hover:border-[#a855f7]/30 hover:bg-[#1a1a25] transition-all duration-200">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-medium text-[#f0f0f5] group-hover:text-white transition-colors line-clamp-2">{pr.title}</h3>
-                            <p className="mt-1 text-xs text-[#55556a] font-['JetBrains_Mono']">#{pr.number}</p>
-                          </div>
-                          <Link
-                            href={`/tile/${selectedRepo}/${pr.number}`}
-                            className="shrink-0 px-4 py-2 rounded-lg bg-gradient-to-r from-[#00f0ff] to-[#a855f7] text-black text-sm font-semibold opacity-0 group-hover:opacity-100 transition-all duration-200 hover:scale-105 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)]"
-                          >
-                            Generate Tile
-                          </Link>
+              ) : isLoading.prs ? (
+                <div className="p-8 text-center">
+                  <div className="w-5 h-5 border-2 border-violet-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-sm text-zinc-500">Loading pull requests...</p>
+                </div>
+              ) : prs.length === 0 ? (
+                <div className="p-8 text-center text-zinc-500 text-sm">
+                  No closed PRs found
+                </div>
+              ) : (
+                <div className="p-2 space-y-1">
+                  {prs.map((pr) => (
+                    <div
+                      key={pr.number}
+                      className="group px-3 py-3 rounded-lg hover:bg-zinc-800 transition-colors"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm text-zinc-200 line-clamp-2 mb-1">{pr.title}</p>
+                          <p className="text-xs text-zinc-500 font-mono">#{pr.number}</p>
                         </div>
+                        <Link
+                          href={`/tile/${selectedRepo}/${pr.number}`}
+                          className="shrink-0 px-3 py-1.5 rounded-md bg-zinc-800 text-xs font-medium text-zinc-300 opacity-0 group-hover:opacity-100 hover:bg-zinc-700 transition-all"
+                        >
+                          Analyze
+                        </Link>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="mt-8 p-6 rounded-2xl bg-gradient-to-r from-[#00f0ff]/5 to-[#a855f7]/5 border border-[#2a2a3a] animate-fade-in animate-delay-3">
-          <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-[#00f0ff]/10 flex items-center justify-center shrink-0">
-              <svg className="w-5 h-5 text-[#00f0ff]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="font-['Space_Grotesk'] font-semibold text-[#f0f0f5]">Pro tip</h3>
-              <p className="mt-1 text-sm text-[#8888a0]">PRs with tests, error handling, and detailed commit messages score higher. Choose your best work to showcase on LinkedIn!</p>
-            </div>
-          </div>
+        {/* Tip */}
+        <div className="mt-8 px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-800">
+          <p className="text-sm text-zinc-400">
+            <span className="text-zinc-300 font-medium">Tip:</span>{" "}
+            PRs with tests, error handling, and detailed commit messages score higher.
+          </p>
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

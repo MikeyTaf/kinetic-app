@@ -17,7 +17,6 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
-      // @ts-ignore - We are extending the session type in types/next-auth.d.ts
       session.accessToken = token.accessToken;
       return session;
     },
